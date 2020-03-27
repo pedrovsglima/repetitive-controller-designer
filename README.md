@@ -1,2 +1,2 @@
-# complex-rc-design
-MATLAB application for projects with complex repetitive controllers.
+# repetitive-controller-design
+MATLAB application for projects with repetitive controllers.
