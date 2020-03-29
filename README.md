@@ -19,8 +19,8 @@ Undergraduate thesis by Pedro Vitor Soares Gomes de Lima
 
 Based on Rafael Cavalcanti Neto's doctoral dissertation
 
-Federal University of Pernambuco - Brazil
+Universidade Federal de Pernambuco - UFPE (Federal University of Pernambuco - Brazil)
 
-Electrical Engineering Department
+Departamento de Engenharia Elétrica - DEE (Electrical Engineering Department)
 
-Note: Both works are in the 'references' folder (written in Portuguese)
+Note: Both works are available in the 'references' folder (written in Portuguese)
