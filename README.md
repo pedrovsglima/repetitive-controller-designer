@@ -1,6 +1,8 @@
 # repetitive-controller-designer
 MATLAB application for projects with repetitive controllers.
 
+Also available in: https://www.mathworks.com/matlabcentral/fileexchange/74759-repetitive-controller-designer
+
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 HOW DOES IT WORK?
