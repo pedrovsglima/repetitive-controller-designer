@@ -16,8 +16,11 @@ In 'Filter Design' it is possible to run an algorithm that returns an ideal filt
 About app development:
 
 Undergraduate thesis by Pedro Vitor Soares Gomes de Lima
+
 Based on Rafael Cavalcanti Neto's doctoral dissertation
+
 Federal University of Pernambuco - Brazil
+
 Electrical Engineering Department
 
 Note: Both works are in the 'references' folder (written in Portuguese)
