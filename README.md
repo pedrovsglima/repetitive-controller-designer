@@ -19,11 +19,11 @@ ABOUT APP DEVELOPMENT:
 
 Undergraduate thesis by Pedro Vitor Soares Gomes de Lima
 
-Based on Rafael Cavalcanti Neto's doctoral dissertation
+The repetitive controller used in this app is proposed in Rafael C. Neto's Ph.D. thesis
 
 Universidade Federal de Pernambuco - UFPE (Federal University of Pernambuco - Brazil)
 
-Departamento de Engenharia Elétrica - DEE (Electrical Engineering Department)
+Departamento de Engenharia Elétrica - DEE (Department of Electrical Engineering)
 
 Note: Both works are available in the 'references' folder (written in Portuguese)
 
