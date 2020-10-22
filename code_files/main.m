@@ -69,14 +69,14 @@ set(handles.edit_den, 'enable', 'on');
 set(handles.edit_ts, 'enable', 'off');
 set(handles.list_function_type, 'enable', 'on');
 set(handles.edit_var, 'enable', 'off');
-set(handles.edit_gain_ws, 'enable', 'off');
+% set(handles.edit_gain_ws, 'enable', 'off');
 
 % deshabilitar botões
 set(handles.button_control, 'enable', 'off');
 set(handles.button_filtro, 'enable', 'off');
 
 % definição valores inciais
-set(handles.edit_gain_ws, 'value', 1);
+set(handles.edit_gain, 'value', 1);
 
 % imagem do controlador
 axes(handles.axes_controlador)
@@ -132,13 +132,13 @@ if (state == 1)
             % https://www.mathworks.com/matlabcentral/answers/304528-tutorial-why-variables-should-not-be-named-dynamically-eval
             var = get(handles.edit_var, 'String');
             func = evalin('base', var);
-            if (isa(func, 'tf') || isa(func, 'zpk'))
+            if (isa(func, 'tf') || isa(func, 'zpk') || isa(func, 'ss'))
                 % https://www.mathworks.com/help/control/ref/tfdata.html
                 [n, d, ts] = tfdata(func);
                 num = n{1};
                 den = d{1};
             else
-                errordlg('The chosen variable is neither a transfer function model nor a zpk model','Invalid Input','modal');
+                errordlg('The chosen variable is none of the following models: tf, zpk or ss','Invalid Input','modal');
                 return
             end
         catch err
@@ -147,7 +147,7 @@ if (state == 1)
             return
         end
         
-        ganho = str2num(get(handles.edit_gain_ws, 'string'));
+        ganho = str2num(get(handles.edit_gain, 'string'));
         [ganhoRows, ganhoCols] = size(ganho);
         if (isempty(ganho) || ganhoRows ~= 1 || ganhoCols ~= 1)
             errordlg('"Gain" must be a number','Invalid Input','modal');
@@ -200,7 +200,7 @@ if (state == 1)
     set(handles.edit_num, 'enable', 'off');
     set(handles.edit_den, 'enable', 'off');
     set(handles.edit_var, 'enable', 'off');
-    set(handles.edit_gain_ws, 'enable', 'off');
+%     set(handles.edit_gain_ws, 'enable', 'off');
     set(handles.edit_ts, 'enable', 'off');
     set(handles.list_function_type, 'enable', 'off');
 
@@ -245,20 +245,20 @@ else
     % permitir modificações em 'input' até que 'start' seja apertado
     set(handles.checkbox_var, 'enable', 'on');
     if (check_in == 1)
-        set(handles.edit_gain, 'enable', 'off');
+        set(handles.edit_gain, 'enable', 'on');
         set(handles.edit_num, 'enable', 'off');
         set(handles.edit_den, 'enable', 'off');
         set(handles.edit_ts, 'enable', 'off');
         set(handles.list_function_type, 'enable', 'off');
         set(handles.edit_var, 'enable', 'on');
-        set(handles.edit_gain_ws, 'enable', 'on');
+%         set(handles.edit_gain_ws, 'enable', 'on');
     else
         set(handles.list_function_type, 'enable', 'on');
         set(handles.edit_gain, 'enable', 'on');
         set(handles.edit_num, 'enable', 'on');
         set(handles.edit_den, 'enable', 'on');        
         set(handles.edit_var, 'enable', 'off');
-        set(handles.edit_gain_ws, 'enable', 'off');
+%         set(handles.edit_gain_ws, 'enable', 'off');
         if (check_type == 1)
             set(handles.edit_ts, 'enable', 'off');
         elseif (check_type == 2)
@@ -314,20 +314,20 @@ function checkbox_var_Callback(hObject, eventdata, handles)
 check = get(hObject,'Value');
 
 if (check == 1)
-    set(handles.edit_gain, 'enable', 'off');
+%     set(handles.edit_gain, 'enable', 'off');
     set(handles.edit_num, 'enable', 'off');
     set(handles.edit_den, 'enable', 'off');
     set(handles.edit_ts, 'enable', 'off');
     set(handles.list_function_type, 'enable', 'off');
     set(handles.edit_var, 'enable', 'on');
-    set(handles.edit_gain_ws, 'enable', 'on');
+%     set(handles.edit_gain_ws, 'enable', 'on');
 else
-    set(handles.edit_gain, 'enable', 'on');
+%     set(handles.edit_gain, 'enable', 'on');
     set(handles.edit_num, 'enable', 'on');
     set(handles.edit_den, 'enable', 'on');
     set(handles.list_function_type, 'enable', 'on');
     set(handles.edit_var, 'enable', 'off');
-    set(handles.edit_gain_ws, 'enable', 'off');
+%     set(handles.edit_gain_ws, 'enable', 'off');
     if (get(handles.list_function_type, 'value') == 1)
         set(handles.edit_ts, 'enable', 'off');
     else

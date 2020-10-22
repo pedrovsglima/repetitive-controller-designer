@@ -67,7 +67,7 @@ function plotar(a_value, q_value, handles, salvar)
     if last_w(end) == freq(end)
         str_estabilidade = 'Stable';
     else
-        str_estabilidade = 'Instable';
+        str_estabilidade = 'Unstable';
     end 
     freq_est = num2str(round(last_w(end)*0.1592,2));
     set(handles.edit_freq, 'string', freq_est);
