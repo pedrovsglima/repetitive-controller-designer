@@ -180,8 +180,8 @@ if (state == 1)
         if (check_type == 2)
             ts = str2num(get(handles.edit_ts, 'string'));
             [tsRows, tsCols] = size(ts);
-            if (isempty(ts) || tsRows ~= 1 || tsCols ~= 1)
-                errordlg('"Ts" must be a number','Invalid Input','modal');
+            if (isempty(ts) || tsRows ~= 1 || tsCols ~= 1 || ts <= 0)
+                errordlg('"Ts" must be a positive number','Invalid Input','modal');
                 return 
             end
         else
