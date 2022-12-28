@@ -371,6 +371,7 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
   
 function order = get_filter_order(fs, freq_values, q_values)
      
+     % calculate the desired stopband attenuation in dB
      A_db = abs( mag2db(q_values(1) - q_values(end)) );
      
      % find index for the highest frequency where Q = initial value
@@ -381,34 +382,52 @@ function order = get_filter_order(fs, freq_values, q_values)
      freq = freq_values(new_vectors_index:end);
      q = q_values(new_vectors_index:end);
      
-     % get f3dB coordinates
-     x_last_f = freq(1);
-     y_last_f = q(1);
+     % run algorithm to obtain the line tangent to the decay 
+     % of the magnitude limit curve of Q(z)
+     f_stopband = freq(1);
      
-     % find index for the lowest frequency where Q = Q(end)
-     integral_limit = find(q == q(end));
-     integral_index = integral_limit(1);
-     % calculate the area considering only the decay curve
-     integral_value = trapz( freq(1:integral_index) , ...
-                             q(1:integral_index) );
+     %excluir
+     e1 = [];
+     e2 = [];
      
-     % calculate delta_f
-     f_limit = x_last_f;
      for j = 0:1:length(freq)-1
-         % calculate area under a line
-         % starting with the segment passing through f3dB and f(end)
-         line_area = trapz( [x_last_f, freq(end-j)], ...
-                            [y_last_f, q(end-j)] );
+         % primeira forma
          
-         if (line_area < integral_value)
-            f_limit = freq(end-j);
-%             assignin('base', 'f_limit', f_limit);
+         % calculate the area under the curve
+         curve_area = trapz( freq(1:end-j) , ...
+                                q(1:end-j) );
+         
+         % calculate area under a line
+         % starting with the segment passing through 
+         % (f3dB, 1) and (f[end], q[end])
+         line_area = trapz( [freq(1), freq(end-j)], ...
+                           [q(1), q(end-j)] );
+         
+         error1 = curve_area - line_area;
+         e1(end+1)=error1;
+         
+         % segunda forma
+         a = (freq(end-j) - freq(1)) / (q(end-j) - q(1));
+         b = q(1) - a*freq(1);
+         l = a*freq(end-j) + b;
+      
+         error2 = q(end-j) - l;
+         e2(end+1)=error2;
+         
+         if (error1 > 0)
+%          if (error2 < 1e3)
+            f_stopband = freq(end-j);
+            assignin('base', 'f_stopband', f_stopband);
             break
          end
      end
+     assignin('base', 'erro1', e1);
+     assignin('base', 'erro2', e2);
      
-     delta_f = f_limit - x_last_f;
+     % calculate the transition bandwidth desired to the filter
+     delta_f = f_stopband - freq(1);
      
+     % calculate filter order
      M = ceil( (A_db*fs)/(22*delta_f) );
      if mod(M, 2) ~= 0
         M = M + 1;
