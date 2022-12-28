@@ -89,7 +89,7 @@ set(handles.edit_a_filtro, 'value', 0);
 set(handles.button_ws, 'enable', 'off');
 
 % data to send to workspace
-data = struct('freq', [], 'q_value', [], 'ordem', 0, 'corte', 0, 'sampling', 0);
+data = struct('freq', [], 'q_value', [], 'ordem', 0, 'corte', 0, 'sampling', 0, 'fir_coefs', []);
 setappdata(handles.fig_filtro, 'FilterData', data);
 
 % Update handles structure
@@ -268,7 +268,8 @@ data = struct('frequency', FilterData.freq, ...
               'q_value', aux_q, ...
               'order', FilterData.ordem, ...
               'cutoff_frequency', FilterData.corte, ...
-              'sampling_frequency', FilterData.sampling);
+              'sampling_frequency', FilterData.sampling, ...
+              'fir_filter_coefficients', FilterData.fir_coefs);
        
 assignin('base', 'FilterData', data);
 msgbox({'Operation Completed!';'Data saved as a struct called "FilterData".'},'Success');
@@ -337,6 +338,8 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
         cutoff_freq = (f_c2+f_c1)/2;
         filter_order = get_filter_order(sampling_rate, freq, q);
         
+        fir_coefs = get_fir_coefs();
+        
         % save designed values for the fir filter
         FilterData = getappdata(handles.fig_filtro, 'FilterData');
         FilterData.freq = freq;
@@ -344,6 +347,7 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
         FilterData.ordem = filter_order;
         FilterData.corte = cutoff_freq;
         FilterData.sampling = sampling_rate;
+        FilterData.fir_coefs = fir_coefs;
         setappdata(handles.fig_filtro, 'FilterData', FilterData);
         
         set(handles.edit_ordem, 'string', num2str(filter_order));
@@ -434,3 +438,7 @@ function order = get_filter_order(fs, freq_values, q_values)
      end
      
      order = M;
+
+function coefs = get_fir_coefs()
+
+    coefs = [];
