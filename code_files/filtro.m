@@ -43,7 +43,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 % --- Executes just before filtro is made visible.
 function filtro_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -55,12 +54,11 @@ function filtro_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for filtro
 handles.output = hObject;
 
-% configuraÃ§Ã£o do plot do filtro
+% default plot
 x_min1 = 1e-6;
 x_max1 = 1e6;
 y_min1 = 0;
 y_max1 = 1.1;
-% estado inicial do plot do filtro
 axes(handles.plot_filtro);
 xlabel('Frequency (Hz)');
 ylabel('Q(j\omega) (abs)');
@@ -79,7 +77,7 @@ else
     set(handles.edit_fs, 'enable', 'off');
 end
 
-% definição valores inciais
+% initial values
 set(handles.edit_q_init, 'value', 1);
 set(handles.edit_q_step, 'value', 0.05);
 set(handles.edit_f_init, 'value', -6);
@@ -87,16 +85,15 @@ set(handles.edit_f_fin, 'value', 6);
 set(handles.edit_f_step, 'value', 100);
 set(handles.edit_a_filtro, 'value', 0);
 
-% estado inicial
+% initial state
 set(handles.button_ws, 'enable', 'off');
 
-% para salvar no workspace
+% data to send to workspace
 data = struct('freq', [], 'q_value', [], 'ordem', 0, 'corte', 0, 'sampling', 0);
 setappdata(handles.fig_filtro, 'FilterData', data);
 
 % Update handles structure
 guidata(hObject, handles);
-
 
 % --- Outputs from this function are returned to the command line.
 function varargout = filtro_OutputFcn(hObject, eventdata, handles) 
@@ -107,7 +104,6 @@ function varargout = filtro_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
-
 
 % --- Executes on button press in button_filtro.
 function button_filtro_Callback(hObject, eventdata, handles)
@@ -123,11 +119,11 @@ ts = PlantData.ts;
 
 % Hint: get(hObject,'Value') returns toggle state of button_filtro
 if (~get(hObject, 'value'))
-    % nome no botão
+    % button name
     set(hObject, 'string', 'Run');
     set(handles.button_ws, 'enable', 'off');
     
-    % permitir modificações já que 'run' ainda não foi apertado
+    % can make changes until the 'run' button is pressed
     set(handles.edit_q_step, 'enable', 'on');
     set(handles.edit_f_step, 'enable', 'on');
     set(handles.edit_a_filtro, 'enable', 'on');
@@ -148,7 +144,7 @@ if (~get(hObject, 'value'))
     set(handles.edit_ordem, 'string', '-');
     set(handles.edit_corte, 'string', '-');
     
-    % limpar plot
+    % clear plot
     lim_x = get(handles.plot_filtro, 'XLim');
     lim_y = get(handles.plot_filtro, 'YLim');
     
@@ -170,7 +166,7 @@ if (~get(hObject, 'value'))
     
 else
     
-    % validar valores escolhidos
+    % run algorithm after checking input values
     q_init = str2num(get(handles.edit_q_init, 'string'));
     [q_initRows, q_initCols] = size(q_init);
     if (isempty(q_init) || q_initRows ~= 1 || q_initCols ~= 1)
@@ -215,7 +211,7 @@ else
         errordlg('The "Number of Points" for the Frequency must be a positive number','Invalid Input','modal');
         return 
     end
-    %%%%%%%%%%%
+
     if (ts == 0)
         fs = str2num(get(handles.edit_fs, 'string'));
         [f_sRows, f_sCols] = size(fs);
@@ -226,19 +222,19 @@ else
     else
         fs = 1/ts;
     end
-    %%%%%%%%%%%
+
     a = str2num(get(handles.edit_a_filtro, 'string'));
     [aRows, aCols] = size(a);
     if (isempty(a) || aRows ~= 1 || aCols ~= 1)
         errordlg('"a value" must be a number','Invalid Input','modal');
         return 
     end
-            
-    % nome no botão
+          
+    % button name
     set(hObject, 'string','Stop');
     set(handles.button_ws, 'enable', 'on');
     
-    % não permitir modificações já que 'run' foi apertado
+    % cannot make changes since the 'run' button has been pressed
     set(handles.edit_q_step, 'enable', 'off');
     set(handles.edit_f_step, 'enable', 'off');
     set(handles.edit_a_filtro, 'enable', 'off');
@@ -248,12 +244,11 @@ else
     set(handles.edit_f_fin, 'enable', 'off');
     set(handles.listbox_filtro, 'enable', 'off');
     
-    % algoritmo filtro fir
-    freq = logspace(f_init, f_fin, f_step); % f_step Ã© o nÃºmero de pontos
+    % fir filter algorithm
+    freq = logspace(f_init, f_fin, f_step);
     algo_filtro(handles, q_init, q_step, freq, a, fs);
 end
  
-
 % --- Executes on button press in button_ws.
 function button_ws_Callback(hObject, eventdata, handles)
 % hObject    handle to button_ws (see GCBO)
@@ -275,15 +270,12 @@ data = struct('frequency', FilterData.freq, ...
               'cutoff_frequency', FilterData.corte, ...
               'sampling_frequency', FilterData.sampling);
        
-% https://www.mathworks.com/help/matlab/ref/save.html
-% https://www.mathworks.com/help/matlab/ref/assignin.html
 assignin('base', 'FilterData', data);
 msgbox({'Operation Completed!';'Data saved as a struct called "FilterData".'},'Success');
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                         FUNÇÕES CRIADAS
+%                                         CREATED FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -293,7 +285,7 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
     freq = fr;        
     a = real(a_value);
         
-    % pegar dados de outros callbacks
+    % get data from 'fig_main' GUI
     GUI1        = findobj(allchild(groot), 'flat', 'Tag', 'fig_main');
     handlesGUI1 = guidata(GUI1);
     
@@ -301,13 +293,11 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
     ganho = PlantData.ganho;
     num = PlantData.num;
     den = PlantData.den;
-    %ts = PlantData.ts;
-    
-    %ft = ganho*tf(num, den, ts);
+
     ft = ganho*tf(num, den, 1/sampling_rate);  
     [re, im] = nyquist(ft, 2*pi*freq);    
     
-    % algoritmo
+    % algorithm
     len = length(freq);
     q = q_init*ones(1, len); 
     flag = 1;
@@ -325,7 +315,7 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
             aux = abs(q(i))^2;
             cond = inequacao(a, aux, re(i), im(i));
         end
-        % encontrar coef angular (decaimento) pelas redondezas da frequência de corte
+        % estimate slope around cutoff frequency
         if (flag == 0 && mag2db(q(i)) < -3)
             mag_corte1 = mag2db(q(i-1));
             mag_corte2 = mag2db(q(i));
@@ -333,39 +323,31 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
             f_c2 = freq(i);
             flag = 1;
         end
-        % se entrar na condição anterior com i=1 vai dar problema no i-1
+        % handling a possible exception when i=1
         if (i==1)
             flag=0; 
         end
     end
-    
-    % calculo da frequência de corte
-%     coef_angular = (mag_corte1-mag_corte2)/log10(f_c1/f_c2);
-%     if coef_angular == 0
-%         errordlg('You must increase the frequency range.','Invalid Input','modal');
-%         return    
+     
     if (mag_corte1-mag_corte2) == 0
        errordlg('Unable to find a cutoff frequency for the given frequency range.','Invalid Input','modal');
        return 
     else
-%         freq_corte = 10^(log10(f_c1) - (mag_corte1+3)/coef_angular);
-        freq_corte = (f_c2+f_c1)/2;
-        filtro_ordem = get_filter_order(sampling_rate, freq, q);
-%         filtro_ordem = ceil(coef_angular/-20);
-%         if mod(filtro_ordem, 2) ~= 0
-%             filtro_ordem = filtro_ordem + 1;
-%         end
-                
+
+        cutoff_freq = (f_c2+f_c1)/2;
+        filter_order = get_filter_order(sampling_rate, freq, q);
+        
+        % save designed values for the fir filter
         FilterData = getappdata(handles.fig_filtro, 'FilterData');
         FilterData.freq = freq;
         FilterData.q_value = q;
-        FilterData.ordem = filtro_ordem;
-        FilterData.corte = freq_corte;
+        FilterData.ordem = filter_order;
+        FilterData.corte = cutoff_freq;
         FilterData.sampling = sampling_rate;
         setappdata(handles.fig_filtro, 'FilterData', FilterData);
         
-        set(handles.edit_ordem, 'string', num2str(filtro_ordem));
-        set(handles.edit_corte, 'string', num2str(round(freq_corte ,2)));
+        set(handles.edit_ordem, 'string', num2str(filter_order));
+        set(handles.edit_corte, 'string', num2str(round(cutoff_freq ,2)));
       
         check_type = get(handles.listbox_filtro, 'value');
         lim_ymin = 0.9*abs(q(end));
@@ -373,12 +355,10 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
 
         axes(handles.plot_filtro);
         if (check_type == 1)
-            % https://www.mathworks.com/help/matlab/ref/semilogx.html
             semilogx(freq, q, 'b');
             eixo_y = 'Q(j\omega) (abs)';
             set(handles.plot_filtro, 'XLim', [freq(1), freq(end)], 'YLim', [0, lim_ymax]);
         elseif (check_type == 2)
-            % https://www.mathworks.com/help/signal/ref/mag2db.html
             semilogx(freq, mag2db(q), 'b');
             eixo_y = 'Q(j\omega) (dB)';
             set(handles.plot_filtro, 'XLim', [freq(1), freq(end)], 'YLim', [mag2db(lim_ymin), mag2db(lim_ymax)]);
@@ -389,39 +369,40 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
         grid on;
     end    
   
- function order = get_filter_order(fs, freq_values, q_values)
+function order = get_filter_order(fs, freq_values, q_values)
      
      A_db = abs( mag2db(q_values(1) - q_values(end)) );
      
-     % encontrar f3dB (last_f)
-     % https://www.mathworks.com/matlabcentral/answers/354301-how-to-find-index-of-the-point-in-matrix-with-condition
+     % find index for the highest frequency where Q = initial value
+     % (just before the decay) - will be called f3dB
      q_limit = find(q_values < q_values(1));     
      new_vectors_index = q_limit(1) - 1;
-        % vetores agora vão de f3db até o final
+     % vectors now go from this index to the end
      freq = freq_values(new_vectors_index:end);
      q = q_values(new_vectors_index:end);
      
-     % coordenadas f3dB
+     % get f3dB coordinates
      x_last_f = freq(1);
      y_last_f = q(1);
      
-     % calcular integral para comparação (área entre f3dB e o primeiro ponto com o valor de f(end))
+     % find index for the lowest frequency where Q = Q(end)
      integral_limit = find(q == q(end));
      integral_index = integral_limit(1);
-        % calcula a área considerando apenas a curva de decaimento
+     % calculate the area considering only the decay curve
      integral_value = trapz( freq(1:integral_index) , ...
                              q(1:integral_index) );
      
-     % encontrar delta_f
+     % calculate delta_f
      f_limit = x_last_f;
      for j = 0:1:length(freq)-1
-         % calcular área da reta - começando pelo segmento que passa por f3dB e f(end)
-         area_reta = trapz( [x_last_f, freq(end-j)], ...
+         % calculate area under a line
+         % starting with the segment passing through f3dB and f(end)
+         line_area = trapz( [x_last_f, freq(end-j)], ...
                             [y_last_f, q(end-j)] );
          
-         if (area_reta < integral_value)
+         if (line_area < integral_value)
             f_limit = freq(end-j);
-            assignin('base', 'f_limit', f_limit);
+%             assignin('base', 'f_limit', f_limit);
             break
          end
      end

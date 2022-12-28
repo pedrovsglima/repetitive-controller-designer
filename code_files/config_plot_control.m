@@ -88,13 +88,14 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 mainfig = gcf;
-% http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/ref/findobj.html#:~:targetText=findobj%20locates%20graphics%20objects%20and,object%20and%20all%20its%20descendants.
-% https://www.mathworks.com/matlabcentral/answers/408268-how-to-share-data-between-two-gui
+
+% data from 'fig_controlador' GUI
 GUI1        = findobj(allchild(groot), 'flat', 'Tag', 'fig_controlador');
 handlesGUI1 = guidata(GUI1);
+% data from current GUI
 handlesGUI2 = guidata(hObject);
 
-% validar valores escolhidos
+% validate chosen input values
 x_min = str2num(get(handlesGUI2.edit_x_min, 'string'));
 [x_minRows, x_minCols] = size(x_min);
 if (isempty(x_min) || x_minRows ~= 1 || x_minCols ~= 1)
@@ -133,15 +134,14 @@ if y_min >= y_max
     return
 end 
 
-% atualizar limites do plot
+% update plot limits values
 set(handlesGUI1.plot_estabilidade, 'XLim', [x_min, x_max], 'YLim', [y_min, y_max]);
 
-% plotar com novos limites
+% plot with new limits
 ControlData = getappdata(handlesGUI1.fig_controlador, 'ControlData');
 q = ControlData.q_value;
 a = ControlData.a_value;
-
-if ~isempty(findobj('type','figure','tag','fig_controlador'))
+if ~isempty(findobj('type', 'figure', 'tag', 'fig_controlador'))
     plotar(a, q, handlesGUI1, 0);
 end
 

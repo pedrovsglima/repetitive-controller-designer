@@ -55,37 +55,35 @@ function main_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for main
 handles.output = hObject;
 
-% variáveis para plot de nyquist
-data = struct('real', [], 'imag', [], 'freq', []);
-setappdata(handles.fig_main, 'NyquistData', data);
+nyquist_data = struct('real', [], 'imag', [], 'freq', []);
+setappdata(handles.fig_main, 'NyquistData', nyquist_data);
 
-data2 = struct('ganho', 0, 'num', [], 'den', [], 'ts', 0);
-setappdata(handles.fig_main, 'PlantData', data2);
+tf_data = struct('ganho', 0, 'num', [], 'den', [], 'ts', 0);
+setappdata(handles.fig_main, 'PlantData', tf_data);
 
-% estado dos componentes de 'input'
+% initial state
 set(handles.edit_gain, 'enable', 'on');
 set(handles.edit_num, 'enable', 'on');
 set(handles.edit_den, 'enable', 'on');
 set(handles.edit_ts, 'enable', 'off');
 set(handles.list_function_type, 'enable', 'on');
 set(handles.edit_var, 'enable', 'off');
-% set(handles.edit_gain_ws, 'enable', 'off');
 
-% deshabilitar botões
+% disable buttons
 set(handles.button_control, 'enable', 'off');
 set(handles.button_filtro, 'enable', 'off');
 
-% definição valores inciais
+% setting initial value
 set(handles.edit_gain, 'value', 1);
 
-% imagem do controlador
+% repetitive controller image
 axes(handles.axes_controlador)
 matlabImage = imread('control2.png');
 image(matlabImage)
 axis off
 axis image
 
-% imagem do 'about'
+% 'about' image
 [a,~]=imread('about.png');
 [r,c,~]=size(a); 
 kk=ceil(r/30); 
@@ -123,17 +121,12 @@ check_in = get(handles.checkbox_var,'Value');
 check_type = get(handles.list_function_type, 'Value'); % 1 - Continuous / 2 - Discrete
 
 if (state == 1)
-    % se checkbox estiver marcada
+    % run algorithm after checking input values
     if check_in
         try 
-            % https://www.mathworks.com/help/matlab/ref/evalin.html
-            % https://www.mathworks.com/help/matlab/creating_guis/plot-workspace-variables-in-a-guide-gui.html
-            % https://www.mathworks.com/help/matlab/matlab_prog/string-evaluation.html
-            % https://www.mathworks.com/matlabcentral/answers/304528-tutorial-why-variables-should-not-be-named-dynamically-eval
             var = get(handles.edit_var, 'String');
             func = evalin('base', var);
             if (isa(func, 'tf') || isa(func, 'zpk') || isa(func, 'ss'))
-                % https://www.mathworks.com/help/control/ref/tfdata.html
                 [n, d, ts] = tfdata(func);
                 num = n{1};
                 den = d{1};
@@ -142,7 +135,6 @@ if (state == 1)
                 return
             end
         catch err
-%             errordlg('Variable does not exist','Invalid Input','modal');
             errordlg(err.message,'Invalid Input','modal');
             return
         end
@@ -154,8 +146,7 @@ if (state == 1)
             return 
         end
         
-    % se checkbox não estiver marcada   
-    else
+    else        
         ganho = str2num(get(handles.edit_gain, 'string'));
         [ganhoRows, ganhoCols] = size(ganho);
         if (isempty(ganho) || ganhoRows ~= 1 || ganhoCols ~= 1)
@@ -188,24 +179,22 @@ if (state == 1)
             ts = 0;
         end
     end
+       
+    % renamen 'OK' button
+    set(hObject, 'string', 'Redefine');
     
-    % depois de checar a validade das entradas, executa algoritmo
-    
-    % nome no botão
-    set(hObject, 'string','Redefine');
-    
-    % não permitir modificações em 'input' já que 'start' foi apertado
+    % cannot make changes since the 'start' button has been pressed
     set(handles.checkbox_var, 'enable', 'off');
     set(handles.edit_gain, 'enable', 'off');
     set(handles.edit_num, 'enable', 'off');
     set(handles.edit_den, 'enable', 'off');
     set(handles.edit_var, 'enable', 'off');
-%     set(handles.edit_gain_ws, 'enable', 'off');
     set(handles.edit_ts, 'enable', 'off');
     set(handles.list_function_type, 'enable', 'off');
 
-    % criar ft a partir de gain, num e den
+    % create tf from gain, num and den
     transf_func = ganho*tf(num, den, ts);
+    % create a nyquist plot of the frequency response 
     [r, i, wout] = nyquist(transf_func);
     
     PlantData = getappdata(handles.fig_main, 'PlantData');
@@ -224,25 +213,23 @@ if (state == 1)
     NyquistData.freq = wout;
     setappdata(handles.fig_main, 'NyquistData', NyquistData);
     
-    % habilitar botões
     set(handles.button_control, 'enable', 'on');
     set(handles.button_filtro, 'enable', 'on');
     
 else
-    % nome no botão
     set(hObject, 'string','OK');
     
-    % fecha as janelas, caso abertas
+    % close windows
     close(findobj('type','figure','tag','fig_controlador'));
     close(findobj('type','figure','tag','fig_filtro'));
     close(findobj('type','figure','tag','fig_config_slider'));
     close(findobj('type','figure','tag','fig_config_plot_control'));
     
-    % deshabilitar botões
+    % disable buttons
     set(handles.button_control, 'enable', 'off');
     set(handles.button_filtro, 'enable', 'off');
     
-    % permitir modificações em 'input' até que 'start' seja apertado
+    % can make changes until the 'start' button is pressed
     set(handles.checkbox_var, 'enable', 'on');
     if (check_in == 1)
         set(handles.edit_gain, 'enable', 'on');
@@ -251,14 +238,13 @@ else
         set(handles.edit_ts, 'enable', 'off');
         set(handles.list_function_type, 'enable', 'off');
         set(handles.edit_var, 'enable', 'on');
-%         set(handles.edit_gain_ws, 'enable', 'on');
     else
         set(handles.list_function_type, 'enable', 'on');
         set(handles.edit_gain, 'enable', 'on');
         set(handles.edit_num, 'enable', 'on');
         set(handles.edit_den, 'enable', 'on');        
         set(handles.edit_var, 'enable', 'off');
-%         set(handles.edit_gain_ws, 'enable', 'off');
+        
         if (check_type == 1)
             set(handles.edit_ts, 'enable', 'off');
         elseif (check_type == 2)
@@ -314,20 +300,18 @@ function checkbox_var_Callback(hObject, eventdata, handles)
 check = get(hObject,'Value');
 
 if (check == 1)
-%     set(handles.edit_gain, 'enable', 'off');
+    
     set(handles.edit_num, 'enable', 'off');
     set(handles.edit_den, 'enable', 'off');
     set(handles.edit_ts, 'enable', 'off');
     set(handles.list_function_type, 'enable', 'off');
     set(handles.edit_var, 'enable', 'on');
-%     set(handles.edit_gain_ws, 'enable', 'on');
 else
-%     set(handles.edit_gain, 'enable', 'on');
     set(handles.edit_num, 'enable', 'on');
     set(handles.edit_den, 'enable', 'on');
     set(handles.list_function_type, 'enable', 'on');
     set(handles.edit_var, 'enable', 'off');
-%     set(handles.edit_gain_ws, 'enable', 'off');
+    
     if (get(handles.list_function_type, 'value') == 1)
         set(handles.edit_ts, 'enable', 'off');
     else

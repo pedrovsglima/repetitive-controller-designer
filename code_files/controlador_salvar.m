@@ -57,7 +57,6 @@ handles.output = hObject;
 
 % mainfig = gcf;
 
-% teve que colocar por causa da função 'plotar', aí deixa invisível
 set(handles.edit_freq, 'visible', 'off');
 set(handles.edit_estabilidade, 'visible', 'off');
 

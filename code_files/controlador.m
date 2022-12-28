@@ -55,7 +55,7 @@ function controlador_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for controlador
 handles.output = hObject;
 
-% configurações slider / mostrar limites
+% get and set sliders limits
 min_aslider = get(handles.slider_a_value, 'Min');
 max_aslider = get(handles.slider_a_value, 'Max');
 set(handles.text_slider_min, 'String', num2str(min_aslider));
@@ -66,7 +66,7 @@ max_qslider = get(handles.slider_q_value, 'Max');
 set(handles.text_slider_qmin, 'String', num2str(min_qslider));
 set(handles.text_slider_qmax, 'String', num2str(max_qslider));
 
-% plot inicial
+% first plot
 a_inicial = 0;
 q_inicial = 1;
 precisao_a = 3;
@@ -75,14 +75,11 @@ data1 = struct('a_value', a_inicial, 'q_value', q_inicial, 'a_precision', precis
 setappdata(handles.fig_controlador, 'ControlData', data1);
 plotar(a_inicial, q_inicial, handles, 0);
 
-% mostrar valor inicial slider
+% show initial value
 set(handles.edit_a_value,'String',num2str(round(get(handles.slider_a_value,'Value'), precisao_a)));
 set(handles.edit_q_value,'String',num2str(round(get(handles.slider_q_value,'Value'), precisao_q)));
 
-% sempre atualizar o valor do slider
-% https://www.mathworks.com/matlabcentral/answers/264979-continuous-slider-callback-how-to-get-value-from-addlistener
-% https://stackoverflow.com/questions/6032924/in-matlab-how-can-you-have-a-callback-execute-while-a-slider-is-being-dragged
-% https://www.mathworks.com/matlabcentral/answers/345396-how-to-update-an-edit-box-window-continuously-by-dragging-a-slider-in-matlab-gui
+% always update slider value
 fun = @(~,~)set(handles.edit_a_value,'String',num2str(round(get(handles.slider_a_value,'Value'), 2)));
 addlistener(handles.slider_a_value, 'Value', 'PostSet', fun);
 % addlistener(handles.slider_a_value, 'Value', 'PostSet', @(hObject, eventdata)slider_a(hObject, eventdata));
@@ -91,14 +88,14 @@ fun1 = @(~,~)set(handles.edit_q_value,'String',num2str(round(get(handles.slider_
 addlistener(handles.slider_q_value, 'Value', 'PostSet', fun1);
 % addlistener(handles.slider_q_value, 'Value', 'PostSet', @(hObject, eventdata)slider_q(hObject, eventdata));
 
-% configuração do plot de estabilidade
+% set plot limits
 x_min = -4;
 x_max = 4;
 y_min = x_min;
 y_max = x_max;
 set(handles.plot_estabilidade, 'XLim', [x_min, x_max], 'YLim', [y_min, y_max]);
 
-% estado inicial
+% initial state
 set(handles.slider_a_value, 'enable', 'on');
 set(handles.edit_set_a, 'enable', 'off');
 set(handles.edit_a_value, 'enable', 'inactive');
@@ -125,22 +122,25 @@ varargout{1} = handles.output;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                          FUNÇÕES CRIADAS
+%                                          CREATED FUNCTIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function slider_a(hObject, eventdata)
+% get data from 'fig_controlador' GUI
 GUI1    = findobj(allchild(groot), 'flat', 'Tag', 'fig_controlador');
 handles = guidata(GUI1);
-% handles = guidata(hObject);
-if (get(handles.checkbox_a_value, 'value') == 0)
 
+% if user is using the slider (checkbox not checked)
+if (get(handles.checkbox_a_value, 'value') == 0)
+    % set value according to the chosen precision
     P = getappdata(handles.fig_controlador, 'ControlData');
     precisao = P.a_precision;
 
     a = round(get(handles.slider_a_value, 'value'), precisao);
     set(handles.edit_a_value,'String',num2str(a));
     
+    % get the value of the other parameter to update the plot
     ControlData = getappdata(handles.fig_controlador, 'ControlData');
     q = ControlData.q_value;
     ControlData.a_value = a;
@@ -150,17 +150,20 @@ if (get(handles.checkbox_a_value, 'value') == 0)
 end 
 
 function slider_q(hObject, eventdata)
+% get data from 'fig_controlador' GUI
 GUI1    = findobj(allchild(groot), 'flat', 'Tag', 'fig_controlador');
 handles = guidata(GUI1);
-% handles = guidata(hObject);
-if (get(handles.checkbox_q_value, 'value') == 0)
 
+% if user is using the slider (checkbox not checked)
+if (get(handles.checkbox_q_value, 'value') == 0)
+    % set value according to the chosen precision
     P = getappdata(handles.fig_controlador, 'ControlData');
     precisao = P.q_precision;
 
     q = round(get(handles.slider_q_value, 'value'), precisao);
     set(handles.edit_q_value,'String',num2str(q));
     
+    % get the value of the other parameter to update the plot
     ControlData = getappdata(handles.fig_controlador, 'ControlData');
     a = ControlData.a_value;
     ControlData.q_value = q;
@@ -171,7 +174,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                      CRIAÇÃO DOS COMPONENTES
+%                                      COMPONENTS INITIALIZATION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -181,12 +184,12 @@ function slider_a_value_CreateFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Propriedades do slider
+% slider properties
 min_slider = -1;
 max_slider = 2;
 set(hObject, 'Min', min_slider, 'Max', max_slider);
 
-%  Specify SliderStep as a two-element vector, [minor_step major_step]
+% specify SliderStep as a two-element vector, [minor_step major_step]
 slider_step = ones(1, 2);
 slider_step(1) = 0.1/(max_slider - min_slider);
 slider_step(2) = 0.1/(max_slider - min_slider);
@@ -202,12 +205,13 @@ function slider_q_value_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to slider_q_value (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
-% Propriedades do slider
+
+% slider properties
 min_slider = 0;
 max_slider = 1;
 set(hObject, 'Min', min_slider, 'Max', max_slider);
 
-%  Specify SliderStep as a two-element vector, [minor_step major_step]
+% specify SliderStep as a two-element vector, [minor_step major_step]
 slider_step = ones(1, 2);
 slider_step(1) = 0.1/(max_slider - min_slider);
 slider_step(2) = 0.1/(max_slider - min_slider);
@@ -232,14 +236,16 @@ function slider_a_value_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-% if (get(handles.button_start, 'value') == 1)
+   
+% if user is using the slider (checkbox not checked)
    if (get(handles.checkbox_a_value, 'value') == 0)
-        
+        % set value according to the chosen precision
         P = getappdata(handles.fig_controlador, 'ControlData');
         precisao = P.a_precision;
 
         a = round(get(hObject, 'value'), precisao);
-
+        
+        % get the value of the other parameter to update the plot
         ControlData = getappdata(handles.fig_controlador, 'ControlData');
         q = ControlData.q_value;
         ControlData.a_value = a;
@@ -248,8 +254,6 @@ function slider_a_value_Callback(hObject, eventdata, handles)
         plotar(a, q, handles, 0);
 
    end 
-% end 
-
 
 function edit_set_a_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_set_a (see GCBO)
@@ -258,21 +262,20 @@ function edit_set_a_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_set_a as text
 %        str2double(get(hObject,'String')) returns contents of edit_set_a as a double
-% if (get(handles.button_start, 'value') == 1)
+
+% if user is using the text editor (checkbox checked)
    if (get(handles.checkbox_a_value, 'value') == 1)
-        
+        % set value according to the chosen precision
         P = getappdata(handles.fig_controlador, 'ControlData');
         precisao = P.a_precision;
         
-        a = round(str2double(get(hObject, 'string')), precisao);
-
-        % str2double function returns NaN for nonnumeric input.
+        a = round(str2double(get(hObject, 'string')), precisao); % str2double function returns NaN for nonnumeric input.
         if isnan(a)
             errordlg('You must enter a numeric value','Invalid Input','modal')
-%             uicontrol(hObject)
             return
         end
         
+        % get the value of the other parameter to update the plot
         ControlData = getappdata(handles.fig_controlador, 'ControlData');
         q = ControlData.q_value;
         ControlData.a_value = a;
@@ -281,7 +284,6 @@ function edit_set_a_Callback(hObject, eventdata, handles)
         plotar(a, q, handles, 0);
         
    end 
-% end
 
 % --- Executes on slider movement.
 function slider_q_value_Callback(hObject, eventdata, handles)
@@ -292,14 +294,15 @@ function slider_q_value_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
-% if (get(handles.button_start, 'value') == 1)
+% if user is using the slider (checkbox not checked)
    if (get(handles.checkbox_q_value, 'value') == 0)
-        
+        % set value according to the chosen precision
         P = getappdata(handles.fig_controlador, 'ControlData');
         precisao = P.q_precision;
         
         q = round(get(hObject, 'value'), precisao);
         
+        % get the value of the other parameter to update the plot
         ControlData = getappdata(handles.fig_controlador, 'ControlData');
         a = ControlData.a_value;
         ControlData.q_value = q;
@@ -308,7 +311,6 @@ function slider_q_value_Callback(hObject, eventdata, handles)
         plotar(a, q, handles, 0);
 
    end 
-% end 
 
 function edit_set_q_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_set_q (see GCBO)
@@ -317,21 +319,20 @@ function edit_set_q_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of edit_set_q as text
 %        str2double(get(hObject,'String')) returns contents of edit_set_q as a double
-% if (get(handles.button_start, 'value') == 1)
+
+% if user is using the text editor (checkbox checked)
    if (get(handles.checkbox_q_value, 'value') == 1)
-        
+        % set value according to the chosen precision
         P = getappdata(handles.fig_controlador, 'ControlData');
         precisao = P.q_precision;
         
-        q = round(str2double(get(hObject, 'string')), precisao);
-
-        % str2double function returns NaN for nonnumeric input.
+        q = round(str2double(get(hObject, 'string')), precisao); % str2double function returns NaN for nonnumeric input.
         if isnan(q)
             errordlg('You must enter a numeric value','Invalid Input','modal')
-%             uicontrol(hObject)
             return
         end
         
+        % get the value of the other parameter to update the plot
         ControlData = getappdata(handles.fig_controlador, 'ControlData');
         a = ControlData.a_value;
         ControlData.q_value = q;
@@ -340,7 +341,6 @@ function edit_set_q_Callback(hObject, eventdata, handles)
         plotar(a, q, handles, 0);
         
    end 
-% end 
 
 % --- Executes on button press in checkbox_a_value.
 function checkbox_a_value_Callback(hObject, eventdata, handles)
@@ -385,16 +385,20 @@ function button_save_Callback(hObject, eventdata, handles)
 % hObject    handle to button_save (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% get current values of 'a' and 'Q'
 ControlData = getappdata(handles.fig_controlador, 'ControlData');
 a = ControlData.a_value;
 q = ControlData.q_value;
 
+% check if directory exists
 path = get(handles.edit_save, 'string');
 if (isempty(path) || ~exist(path, 'dir'))
     errordlg('Invalid Directory','Invalid Input','modal');
     return 
 end 
 
+% save plot
 if isempty(findobj(allchild(groot), 'flat', 'tag', 'fig_control_salvar'))
     controlador_salvar;
     handles2 = guihandles(controlador_salvar);
@@ -413,13 +417,6 @@ end
 %                                               MENU
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% https://www.mathworks.com/help/matlab/graphics-objects.html
-% https://www.mathworks.com/matlabcentral/answers/463232-multi-window-gui-single-file
-% https://www.mathworks.com/matlabcentral/answers/147242-collecting-user-inputs-with-multiple-gui-windows
-% https://www.mathworks.com/matlabcentral/answers/13482-help-with-multi-window-gui
-% https://www.mathworks.com/matlabcentral/answers/167461-using-a-main-gui-window-to-open-new-ones
-% https://www.mathworks.com/matlabcentral/answers/310185-opening-another-figure-doesn-t-create-handles-in-guide-how-to-fix-it
-% https://www.youtube.com/watch?v=-ONffXoS47g
 
 % --------------------------------------------------------------------
 function menu_config_Callback(hObject, eventdata, handles)
@@ -441,7 +438,7 @@ if isempty(findobj(allchild(groot), 'flat', 'tag', 'fig_config_slider'))
     % fig2 = openfig('config_slider.fig');
     % handles2 = guihandles(fig2);
 
-    % Propriedades do slider
+    % sliders properties
     a_slider_min = get(handles.slider_a_value, 'Min');
     a_slider_max = get(handles.slider_a_value, 'Max');
     a_slider_step = get(handles.slider_a_value, 'SliderStep'); %[minor_step major_step]
@@ -487,7 +484,7 @@ if isempty(findobj(allchild(groot), 'flat', 'tag', 'fig_config_plot_control'))
     % fig2 = openfig('config_slider.fig');
     % handles2 = guihandles(fig2);
 
-    % Propriedades do plot
+    % plot properties
     lim_x = get(handles.plot_estabilidade, 'XLim');
     lim_y = get(handles.plot_estabilidade, 'YLim');
     set(handles2.edit_x_min, 'string', num2str(lim_x(1)));

@@ -80,13 +80,14 @@ function button_ok_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 mainfig = gcf;
-% http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/ref/findobj.html#:~:targetText=findobj%20locates%20graphics%20objects%20and,object%20and%20all%20its%20descendants.
-% https://www.mathworks.com/matlabcentral/answers/408268-how-to-share-data-between-two-gui
+
+% data from 'fig_controlador' GUI
 GUI1        = findobj(allchild(groot), 'flat', 'Tag', 'fig_controlador');
 handlesGUI1 = guidata(GUI1);
+% data from current GUI
 handlesGUI2 = guidata(hObject);
 
-% validar valores escolhidos
+% validate chosen input values
 a_min = str2num(get(handlesGUI2.edit_a_min, 'string'));
 [a_minRows, a_minCols] = size(a_min);
 if (isempty(a_min) || a_minRows ~= 1 || a_minCols ~= 1)
@@ -173,7 +174,7 @@ if (q_precisao < 0)
     return 
 end  
 
-% atualizar slider parâmetro a
+% update slider values - parameter a
 set(handlesGUI1.slider_a_value, 'Min', a_min, 'Max', a_max);
 set(handlesGUI1.slider_a_value, 'value', a);
 set(handlesGUI1.edit_a_value, 'value', a);
@@ -184,7 +185,7 @@ slider_a_step(1) = a_step/(a_max - a_min);
 slider_a_step(2) = a_step/(a_max - a_min);
 set(handlesGUI1.slider_a_value, 'SliderStep' , slider_a_step);
 
-% atualizar slider parâmetro Q
+% update slider values - parameter Q
 set(handlesGUI1.slider_q_value, 'Min', q_min, 'Max', q_max);
 set(handlesGUI1.slider_q_value, 'value', q);
 set(handlesGUI1.edit_q_value, 'value', q);
@@ -195,7 +196,7 @@ slider_q_step(1) = q_step/(q_max - q_min);
 slider_q_step(2) = q_step/(q_max - q_min);
 set(handlesGUI1.slider_q_value, 'SliderStep' , slider_q_step);
 
-% atualizar valores de 'a' e 'q' que são salvos na estrutura
+% verifies the need to update the current values of 'a' and 'q'
 ControlData = getappdata(handlesGUI1.fig_controlador, 'ControlData');
 if (get(handlesGUI1.checkbox_a_value, 'value') == 1)
    a = ControlData.a_value;
@@ -211,6 +212,7 @@ ControlData.a_precision = a_precisao;
 ControlData.q_precision = q_precisao;
 setappdata(handlesGUI1.fig_controlador, 'ControlData', ControlData);
 
+% plot with new values
 if ~isempty(findobj('type','figure','tag','fig_controlador'))
     plotar(a, q, handlesGUI1, 0);
 end
