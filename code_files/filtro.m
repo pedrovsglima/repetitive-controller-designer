@@ -305,8 +305,6 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
     
     mag_corte1 = 0;
     mag_corte2 = 0;
-    f_c1 = 10;
-    f_c2 = 0;
     
     for i = 1:1:len
         aux = abs(q(i))^2;
@@ -320,8 +318,6 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
         if (flag == 0 && mag2db(q(i)) < -3)
             mag_corte1 = mag2db(q(i-1));
             mag_corte2 = mag2db(q(i));
-            f_c1 = freq(i-1);
-            f_c2 = freq(i);
             flag = 1;
         end
         % handling a possible exception when i=1
@@ -331,14 +327,19 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
     end
      
     if (mag_corte1-mag_corte2) == 0
-       errordlg('Unable to find a cutoff frequency for the given frequency range.','Invalid Input','modal');
+       errordlg('Unable to design a FIR filter for the given frequency range.','Invalid Input','modal');
        return 
     else
 
-        cutoff_freq = (f_c2+f_c1)/2;
-        filter_order = get_filter_order(sampling_rate, freq, q);
+        % find index for the highest frequency where Q = initial value
+        % (just before the decay) - will be called f3dB
+        q_limit = find(q < q(1));     
+        f3db_index = q_limit(1) - 1;
+        cutoff_freq = freq(f3db_index);
         
-        fir_coefs = get_fir_coefs();
+        filter_order = get_filter_order(sampling_rate, freq, q, f3db_index);
+        
+        fir_coefs = get_fir_coefs(filter_order, sampling_rate, freq(f3db_index));
         
         % save designed values for the fir filter
         FilterData = getappdata(handles.fig_filtro, 'FilterData');
@@ -373,63 +374,50 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
         grid on;
     end    
   
-function order = get_filter_order(fs, freq_values, q_values)
+function order = get_filter_order(fs, freq_values, q_values, f3db_index)
      
      % calculate the desired stopband attenuation in dB
      A_db = abs( mag2db(q_values(1) - q_values(end)) );
      
-     % find index for the highest frequency where Q = initial value
-     % (just before the decay) - will be called f3dB
-     q_limit = find(q_values < q_values(1));     
-     new_vectors_index = q_limit(1) - 1;
-     % vectors now go from this index to the end
-     freq = freq_values(new_vectors_index:end);
-     q = q_values(new_vectors_index:end);
+     freq = freq_values(f3db_index:end);
+     q = q_values(f3db_index:end);
      
      % run algorithm to obtain the line tangent to the decay 
      % of the magnitude limit curve of Q(z)
-     f_stopband = freq(1);
-     
-     %excluir
-     e1 = [];
-     e2 = [];
-     
+     f_tangent = freq(1);
+     q_tangent = q(1);
      for j = 0:1:length(freq)-1
-         % primeira forma
-         
          % calculate the area under the curve
          curve_area = trapz( freq(1:end-j) , ...
-                                q(1:end-j) );
+                               q(1:end-j) );
          
          % calculate area under a line
          % starting with the segment passing through 
          % (f3dB, 1) and (f[end], q[end])
          line_area = trapz( [freq(1), freq(end-j)], ...
-                           [q(1), q(end-j)] );
+                          [q(1), q(end-j)] );
          
-         error1 = curve_area - line_area;
-         e1(end+1)=error1;
-         
-         % segunda forma
-         a = (freq(end-j) - freq(1)) / (q(end-j) - q(1));
-         b = q(1) - a*freq(1);
-         l = a*freq(end-j) + b;
-      
-         error2 = q(end-j) - l;
-         e2(end+1)=error2;
-         
-         if (error1 > 0)
-%          if (error2 < 1e3)
-            f_stopband = freq(end-j);
-            assignin('base', 'f_stopband', f_stopband);
+         error = line_area - curve_area;
+                 
+         if (error < 0)
+            f_tangent = freq(end-j);
+            q_tangent = q(end-j);
+%             assignin('base', 'f_tangent', f_tangent);
             break
          end
+         
      end
-     assignin('base', 'erro1', e1);
-     assignin('base', 'erro2', e2);
+     
+     % calculate the equation of the tangent line
+     a = (q_tangent - q(1)) / (f_tangent - freq(1));
+     b = q(1) - a*freq(1);
+     
+     f_stopband = (q(end)-b)/a;
+%      assignin('base', 'f_stopband', f_stopband);
      
      % calculate the transition bandwidth desired to the filter
      delta_f = f_stopband - freq(1);
+%      assignin('base', 'delta_f', delta_f);
      
      % calculate filter order
      M = ceil( (A_db*fs)/(22*delta_f) );
@@ -439,6 +427,8 @@ function order = get_filter_order(fs, freq_values, q_values)
      
      order = M;
 
-function coefs = get_fir_coefs()
-
-    coefs = [];
+function coefs = get_fir_coefs(order, fs, f3db)
+    fn = fs/2;
+    Wn = f3db/fn;
+    bn = fir1(order, Wn, 'low');
+    coefs = bn;
