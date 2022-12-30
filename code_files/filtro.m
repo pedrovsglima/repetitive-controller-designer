@@ -22,7 +22,7 @@ function varargout = filtro(varargin)
 
 % Edit the above text to modify the response to help filtro
 
-% Last Modified by GUIDE v2.5 28-Nov-2022 17:16:20
+% Last Modified by GUIDE v2.5 30-Dec-2022 11:45:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -335,8 +335,7 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
     q_limit = find(q < q(1));     
     new_index = q_limit(1) - 1;
     
-    % flag_3db = 1 se passar por -3dB
-    if flag_3db
+    if flag_3db == 1
         cutoff_freq = (f_c2+f_c1)/2;
     else    
         cutoff_freq = freq(new_index);
