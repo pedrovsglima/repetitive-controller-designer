@@ -303,8 +303,6 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
     q = q_init*ones(1, len); 
     flag_3db = 1;
     
-    mag_corte1 = 0;
-    mag_corte2 = 0;
     f_c1 = 10;
     f_c2 = 0;
     
@@ -318,8 +316,6 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
         end
         % estimate slope around cutoff frequency
         if (flag_3db == 0 && mag2db(q(i)) < -3)
-            mag_corte1 = mag2db(q(i-1));
-            mag_corte2 = mag2db(q(i));
             f_c1 = freq(i-1);
             f_c2 = freq(i);
             flag_3db = 1;
@@ -329,53 +325,59 @@ function algo_filtro(handles, init_q, step_q, fr, a_value, sampling_rate)
             flag_3db=0; 
         end
     end
-        
-    % find index for the highest frequency where Q = initial value
-    % (just before the decay) - will be called f3dB
-    q_limit = find(q < q(1));     
-    new_index = q_limit(1) - 1;
     
-    if flag_3db == 1
-        cutoff_freq = (f_c2+f_c1)/2;
-    else    
-        cutoff_freq = freq(new_index);
+    if q(1) == q(end)
+       errordlg('Unable to design a FIR filter for the given frequency range.','Invalid Input','modal');
+       return 
+    else
+        
+        % find index for the highest frequency where Q = initial value
+        % (just before the decay) - will be called f3dB
+        q_limit = find(q < q(1));     
+        new_index = q_limit(1) - 1;
+
+        if flag_3db == 1
+            cutoff_freq = (f_c2+f_c1)/2;
+        else    
+            cutoff_freq = freq(new_index);
+        end
+
+        filter_order = get_filter_order(sampling_rate, freq, q, new_index);
+
+        fir_coefs = get_fir_coefs(filter_order, sampling_rate, freq(new_index));
+
+        % save designed values for the fir filter
+        FilterData = getappdata(handles.fig_filtro, 'FilterData');
+        FilterData.freq = freq;
+        FilterData.q_value = q;
+        FilterData.ordem = filter_order;
+        FilterData.corte = cutoff_freq;
+        FilterData.sampling = sampling_rate;
+        FilterData.fir_coefs = fir_coefs;
+        setappdata(handles.fig_filtro, 'FilterData', FilterData);
+
+        set(handles.edit_ordem, 'string', num2str(filter_order));
+        set(handles.edit_corte, 'string', num2str(round(cutoff_freq ,2)));
+
+        check_type = get(handles.listbox_filtro, 'value');
+        lim_ymin = 0.9*abs(q(end));
+        lim_ymax = 1.1*abs(q(1));
+
+        axes(handles.plot_filtro);
+        if (check_type == 1)
+            semilogx(freq, q, 'b');
+            eixo_y = 'Q(j\omega) (abs)';
+            set(handles.plot_filtro, 'XLim', [freq(1), freq(end)], 'YLim', [0, lim_ymax]);
+        elseif (check_type == 2)
+            semilogx(freq, mag2db(q), 'b');
+            eixo_y = 'Q(j\omega) (dB)';
+            set(handles.plot_filtro, 'XLim', [freq(1), freq(end)], 'YLim', [mag2db(lim_ymin), mag2db(lim_ymax)]);
+        end
+
+        xlabel('Frequency (Hz)');
+        ylabel(eixo_y);
+        grid on;    
     end
-
-    filter_order = get_filter_order(sampling_rate, freq, q, new_index);
-
-    fir_coefs = get_fir_coefs(filter_order, sampling_rate, freq(new_index));
-
-    % save designed values for the fir filter
-    FilterData = getappdata(handles.fig_filtro, 'FilterData');
-    FilterData.freq = freq;
-    FilterData.q_value = q;
-    FilterData.ordem = filter_order;
-    FilterData.corte = cutoff_freq;
-    FilterData.sampling = sampling_rate;
-    FilterData.fir_coefs = fir_coefs;
-    setappdata(handles.fig_filtro, 'FilterData', FilterData);
-
-    set(handles.edit_ordem, 'string', num2str(filter_order));
-    set(handles.edit_corte, 'string', num2str(round(cutoff_freq ,2)));
-
-    check_type = get(handles.listbox_filtro, 'value');
-    lim_ymin = 0.9*abs(q(end));
-    lim_ymax = 1.1*abs(q(1));
-
-    axes(handles.plot_filtro);
-    if (check_type == 1)
-        semilogx(freq, q, 'b');
-        eixo_y = 'Q(j\omega) (abs)';
-        set(handles.plot_filtro, 'XLim', [freq(1), freq(end)], 'YLim', [0, lim_ymax]);
-    elseif (check_type == 2)
-        semilogx(freq, mag2db(q), 'b');
-        eixo_y = 'Q(j\omega) (dB)';
-        set(handles.plot_filtro, 'XLim', [freq(1), freq(end)], 'YLim', [mag2db(lim_ymin), mag2db(lim_ymax)]);
-    end
-
-    xlabel('Frequency (Hz)');
-    ylabel(eixo_y);
-    grid on;    
   
 function order = get_filter_order(fs, freq_values, q_values, new_index)
      
