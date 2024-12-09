@@ -3,6 +3,24 @@ MATLAB application for projects with repetitive controllers.
 
 Available in: https://www.mathworks.com/matlabcentral/fileexchange/74759-repetitive-controller-designer
 
+If you use our application, please cite the following publication:
+
+de Lima PVSG, Neto RC, Neves FAS, Bradaschia F, de Souza HEP, Barbosa EJ. Zero-Phase FIR Filter Design Algorithm for Repetitive Controllers. Energies. 2023; 16(5):2451. https://doi.org/10.3390/en16052451
+
+```
+@article{lima2023zero,
+  title={Zero-Phase FIR Filter Design Algorithm for Repetitive Controllers},
+  author={de Lima, Pedro VSG and Neto, Rafael C and Neves, Francisco AS and Bradaschia, Fabricio and de Souza, Helber EP and Barbosa, Eduardo J},
+  journal={Energies},
+  volume={16},
+  number={5},
+  pages={2451},
+  year={2023},
+  publisher={MDPI},
+  doi={10.3390/en16052451},
+}
+```
+
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 HOW DOES IT WORK?
